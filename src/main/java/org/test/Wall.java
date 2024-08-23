@@ -18,6 +18,16 @@ public class Wall implements Structure {
         return findBlockByColor(blocks, color);
     }
 
+    @Override
+    public List<Block> findBlocksByMaterial(String material) {
+        return findBlocksByMaterial(blocks, material);
+    }
+
+    @Override
+    public int count() {
+        return count(blocks);
+    }
+
     private Optional<Block> findBlockByColor(List<Block> blocks, String color) {
         return blocks.stream()
                 .flatMap(block -> {
@@ -30,27 +40,14 @@ public class Wall implements Structure {
                 .findAny();
     }
 
-    @Override
-    public List<Block> findBlocksByMaterial(String material) {
-        return findBlocksByMaterial(blocks, material);
-    }
-
     private List<Block> findBlocksByMaterial(List<Block> blocks, String material) {
-        List<Block> foundedBlocks =
-                blocks.stream().flatMap(block -> {
-                    if (block instanceof CompositeBlock) {
-                        return findBlocksByMaterial(((CompositeBlock) block).getBlocks(), material).stream();
-                    } else {
-                        return block.getMaterial().equals(material) ? Stream.of(block) : Stream.empty();
-                    }
-                }).toList();
-
-        return foundedBlocks;
-    }
-
-    @Override
-    public int count() {
-        return count(blocks);
+        return blocks.stream().flatMap(block -> {
+            if (block instanceof CompositeBlock) {
+                return findBlocksByMaterial(((CompositeBlock) block).getBlocks(), material).stream();
+            } else {
+                return block.getMaterial().equals(material) ? Stream.of(block) : Stream.empty();
+            }
+        }).toList();
     }
 
     private int count(List<Block> blocks) {

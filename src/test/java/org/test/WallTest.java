@@ -1,109 +1,95 @@
 package org.test;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.test.testmodels.TestData;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.test.testmodels.TestData.*;
 
 class WallTest {
 
-
-    @Test
-    void findBlockByColor_withoutCompositeBlocks_shouldReturnBlockByColor() {
-        //given
-        Wall givenWallWithoutCompositeBlocks = TestData.createTestObjectWithoutCompositeBlocks();
+    @ParameterizedTest
+    @MethodSource("shouldReturnBlockByColor")
+    @DisplayName("should return correct block by color")
+    public void findBlockByColor_shouldReturnBlockByColor(Wall givenWall,
+                                                          String givenColor,
+                                                          String expectedColor) {
         //when
-        Optional<Block> foundBlockByColor = givenWallWithoutCompositeBlocks.findBlockByColor(GIVEN_COLOR);
-        // then
-        Optional<Block> expectedResult = Optional.of(EXPECTED_BLOCK);
-        Assertions.assertEquals(expectedResult, foundBlockByColor);
-    }
-
-    @Test
-    void findBlockByColor_withCompositeBlocks_shouldReturnBlockByColor() {
-        //given
-        Wall givenWallWithCompositeBlocks = TestData.createTestObjectWithOnlyCompositeBlocks();
-        //when
-        Optional<Block> foundBlock = givenWallWithCompositeBlocks.findBlockByColor(GIVEN_COLOR);
+        Optional<Block> foundBlockByColor = givenWall.findBlockByColor(givenColor);
         //then
+        Assertions.assertEquals(expectedColor, foundBlockByColor.get().getColor());
 
-        Assertions.assertEquals(EXPECTED_COLOR, foundBlock.get().getColor());
     }
 
     @Test
-    void findBlockByColor_withMixedTypeBlocks_shouldReturnBlockByColor() {
+    @DisplayName("should return empty optional if color not found")
+    void findBlockByColor_withNonExistColor_shouldReturnEmptyOptional() {
         //given
-        Wall givenWallWithMixedBlocks = TestData.createTestObjectWithMixedTypeBlocks();
+        Wall givenWall = createTestObjectWithMixedTypeBlocks();
         //when
-        Optional<Block> foundBlock = givenWallWithMixedBlocks.findBlockByColor(GIVEN_COLOR);
+        Optional<Block> blockByColor = givenWall.findBlockByColor(GIVEN_NON_EXIST_COLOR);
         //then
-        Assertions.assertEquals(EXPECTED_COLOR, foundBlock.get().getColor());
+        Assertions.assertEquals(Optional.empty(), blockByColor);
+    }
+
+    @ParameterizedTest
+    @MethodSource("shouldReturnBlocksByMaterial")
+    @DisplayName("should return list of blocks by material or empty list if not found")
+    public void findBlockByMaterial_shouldReturnBlocksByMaterial(Wall givenWall,
+                                                                 String givenMaterial,
+                                                                 List<Block> expectedBlocks) {
+        //when
+        List<Block> blocksByMaterial = givenWall.findBlocksByMaterial(givenMaterial);
+        //then
+        Assertions.assertEquals(expectedBlocks, blocksByMaterial);
     }
 
 
-    @Test
-    void findBlockByMaterial_withoutCompositeBlocks_shouldReturnBlocksByMaterial() {
-        //given
-        Wall givenWallWithoutCompositeBlocks = TestData.createTestObjectWithoutCompositeBlocks();
+    @ParameterizedTest
+    @MethodSource("shouldReturnSumOfBLocks")
+    @DisplayName("should return correct sum of blocks")
+    public void count_shouldReturnSumOfBlocks(Wall givenWall, int expectedSum) {
         //when
-        List<Block> foundBlocksByMaterial = givenWallWithoutCompositeBlocks.findBlocksByMaterial(GIVEN_MATERIAL);
+        int sumOfBlocks = givenWall.count();
         //then
-        Assertions.assertEquals(EXPECTED_LIST_OF_BLOCKS_WITHOUT_COMPOSITE_BLOCKS, foundBlocksByMaterial);
+        Assertions.assertEquals(expectedSum, sumOfBlocks);
+
     }
 
-    @Test
-    void findBlockByMaterial_withCompositeBlocks_shouldReturnBlocksByMaterial() {
-        //given
-        Wall givenWallWithCompositeBlocks = TestData.createTestObjectWithOnlyCompositeBlocks();
-        //when
-        List<Block> foundBlocksByMaterial = givenWallWithCompositeBlocks.findBlocksByMaterial(GIVEN_MATERIAL);
-        //then
-        Assertions.assertEquals(EXPECTED_LIST_OF_BLOCKS_WITH_COMPOSITE_BLOCKS, foundBlocksByMaterial);
+    private static Stream<Arguments> shouldReturnBlockByColor() {
+        return Stream.of(Arguments.of(TestData.createTestObjectWithoutCompositeBlocks(),
+                        GIVEN_COLOR, EXPECTED_COLOR),
+                Arguments.of(TestData.createTestObjectWithOnlyCompositeBlocks(),
+                        GIVEN_COLOR, EXPECTED_COLOR),
+                Arguments.of(TestData.createTestObjectWithMixedTypeBlocks(),
+                        GIVEN_COLOR, EXPECTED_COLOR));
     }
 
-    @Test
-    void findBlockByMaterial_withMixedTypeBlocks_shouldReturnBlocksByMaterial() {
-        //given
-        Wall givenWallWithMixedBlocks = TestData.createTestObjectWithMixedTypeBlocks();
-        //when
-        List<Block> foundBlocksByMaterial = givenWallWithMixedBlocks.findBlocksByMaterial(GIVEN_MATERIAL);
-        //then
-        Assertions.assertEquals(EXPECTED_LIST_OF_BLOCKS_WITH_MIXED_BLOCKS, foundBlocksByMaterial);
+    private static Stream<Arguments> shouldReturnBlocksByMaterial() {
+        return Stream.of(Arguments.of(TestData.createTestObjectWithoutCompositeBlocks(),
+                        GIVEN_MATERIAL, EXPECTED_LIST_OF_BLOCKS_WITHOUT_COMPOSITE_BLOCKS),
+                Arguments.of(TestData.createTestObjectWithOnlyCompositeBlocks(),
+                        GIVEN_MATERIAL, EXPECTED_LIST_OF_BLOCKS_WITH_COMPOSITE_BLOCKS),
+                Arguments.of(TestData.createTestObjectWithMixedTypeBlocks(),
+                        GIVEN_MATERIAL, EXPECTED_LIST_OF_BLOCKS_WITH_MIXED_BLOCKS),
+                Arguments.of(TestData.createTestObjectWithMixedTypeBlocks(), GIVEN_NON_EXIST_MATERIAL, List.of()));
     }
 
-    @Test
-    void count_withoutCompositeBlocks_shouldReturnSumOfBlock() {
-        //given
-        Wall givenWallWithoutCompositeBlocks = TestData.createTestObjectWithoutCompositeBlocks();
-        //when
-        int sumOfBlocks = givenWallWithoutCompositeBlocks.count();
-        //then
-        Assertions.assertEquals(EXPECTED_SIZE_FOR_LIST_WITHOUT_COMPOSITE_BLOCKS, sumOfBlocks);
+    private static Stream<Arguments> shouldReturnSumOfBLocks() {
+        return Stream.of(Arguments.of(TestData.createTestObjectWithoutCompositeBlocks(),
+                        EXPECTED_SIZE_FOR_LIST_WITHOUT_COMPOSITE_BLOCKS),
+                Arguments.of(TestData.createTestObjectWithOnlyCompositeBlocks(),
+                        EXPECTED_SIZE_FOR_LIST_WITH_COMPOSITE_BLOCKS),
+                Arguments.of(TestData.createTestObjectWithMixedTypeBlocks(),
+                        EXPECTED_SIZE_FOR_LIST_WITH_MIXED_BLOCKS));
     }
-
-    @Test
-    void count_withCompositeBlocks_shouldReturnSumOfBlock() {
-        //given
-        Wall givenWallWithCompositeBlocks = TestData.createTestObjectWithOnlyCompositeBlocks();
-        //when
-        int sumOfBlocks = givenWallWithCompositeBlocks.count();
-        //then
-        Assertions.assertEquals(EXPECTED_SIZE_FOR_LIST_WITH_COMPOSITE_BLOCKS, sumOfBlocks);
-    }
-
-    @Test
-    void count_withMixedTypeBlocks_shouldReturnSumOfBlock() {
-        //given
-        Wall givenWallWithMixedBlocks = TestData.createTestObjectWithMixedTypeBlocks();
-        //when
-        int sumOfBlocks = givenWallWithMixedBlocks.count();
-        //then
-        Assertions.assertEquals(EXPECTED_SIZE_FOR_LIST_WITH_MIXED_BLOCKS, sumOfBlocks);
-    }
-
 
 }

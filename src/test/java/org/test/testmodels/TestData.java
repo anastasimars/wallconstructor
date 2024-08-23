@@ -6,10 +6,11 @@ import org.test.Wall;
 import java.util.List;
 
 public class TestData {
-    public static final Block EXPECTED_BLOCK = new CircleBlockTest("yellow", "paper");
     public static final String EXPECTED_COLOR = "yellow";
     public static final String GIVEN_COLOR = "yellow";
+    public static final String GIVEN_NON_EXIST_COLOR = "black";
     public static final String GIVEN_MATERIAL = "paper";
+    public static final String GIVEN_NON_EXIST_MATERIAL = "plastic";
     public static final int EXPECTED_SIZE_FOR_LIST_WITHOUT_COMPOSITE_BLOCKS = 2;
     public static final int EXPECTED_SIZE_FOR_LIST_WITH_COMPOSITE_BLOCKS = 5;
     public static final int EXPECTED_SIZE_FOR_LIST_WITH_MIXED_BLOCKS = 4;
